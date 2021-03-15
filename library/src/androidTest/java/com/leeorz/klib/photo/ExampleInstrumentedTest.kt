@@ -1,4 +1,4 @@
-package com.leeorz.klib
+package com.leeorz.klib.photo
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4

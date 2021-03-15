@@ -1,4 +1,4 @@
-package com.leeorz.klib
+package com.leeorz.klib.photo
 
 import org.junit.Test
 
