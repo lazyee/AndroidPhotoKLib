@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.lazyee.klib.photo.picker.widget.SquareItemLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <ImageView
+            android:id="@+id/iv_photo"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:adjustViewBounds="true"
+            android:padding="1dip"
+            android:scaleType="centerCrop" />
+        <View android:id="@+id/vSelectedMask"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#60000000"
+            />
+        <ImageView
+            android:layout_alignParentRight="true"
+            android:id="@+id/ivSelected"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_picker_check"
+            android:padding="10dp" />
+    </RelativeLayout>
+
+
+</com.lazyee.klib.photo.picker.widget.SquareItemLayout>
