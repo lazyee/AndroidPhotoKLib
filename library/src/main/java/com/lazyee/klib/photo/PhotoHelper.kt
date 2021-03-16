@@ -128,9 +128,13 @@ class PhotoHelper(private val mActivity: FragmentActivity) {
     }
 
     private fun addFragmentToFragmentActivity(fragment: OnActivityResultFragment) {
-        mActivity.supportFragmentManager.beginTransaction()
-            .add(fragment, OnActivityResultFragment.TAG)
-            .commitAllowingStateLoss()
+        try {
+            mActivity.supportFragmentManager.beginTransaction()
+                    .add(fragment, OnActivityResultFragment.TAG)
+                    .commitAllowingStateLoss()
+        }catch (e:Exception){
+            e.printStackTrace()
+        }
     }
 
     private fun removeOnActivityResultFragment() {
