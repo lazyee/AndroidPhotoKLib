@@ -14,13 +14,10 @@ import androidx.fragment.app.Fragment
 import androidx.viewpager.widget.ViewPager.OnPageChangeListener
 import com.gyf.immersionbar.ImmersionBar
 import com.lazyee.klib.photo.R
+import com.lazyee.klib.photo.databinding.FragmentPhotoPagerBinding
 import com.lazyee.klib.photo.picker.adapter.PhotoPagerAdapter
-import kotlinx.android.synthetic.main.fragment_photo_pager.*
 import java.util.*
 
-/**
- * Created by donglua on 15/6/21.
- */
 internal class PhotoPagerFragment : Fragment() {
     var paths = mutableListOf<String>()
     private var mPagerAdapter: PhotoPagerAdapter? = null
@@ -31,12 +28,13 @@ internal class PhotoPagerFragment : Fragment() {
     private var hasAnim = false
     private val colorizerMatrix = ColorMatrix()
     private var currentItem = 0
+
     fun setPhotos(paths: List<String>?, currentItem: Int) {
         this.paths.clear()
         this.paths.addAll(paths!!)
         this.currentItem = currentItem
-        vpPhotos.currentItem = currentItem
-        vpPhotos.adapter!!.notifyDataSetChanged()
+        binding.vpPhotos.currentItem = currentItem
+        binding.vpPhotos.adapter!!.notifyDataSetChanged()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -59,31 +57,33 @@ internal class PhotoPagerFragment : Fragment() {
         }
         mPagerAdapter = PhotoPagerAdapter(activity!!, paths)
     }
+    private lateinit var binding:FragmentPhotoPagerBinding
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_photo_pager, container, false)
+        binding = FragmentPhotoPagerBinding.inflate(inflater,container,false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        vpPhotos.adapter = mPagerAdapter
-        vpPhotos.currentItem = currentItem
-        vpPhotos.offscreenPageLimit = 5
+        binding.vpPhotos.adapter = mPagerAdapter
+        binding.vpPhotos.currentItem = currentItem
+        binding.vpPhotos.offscreenPageLimit = 5
 
         // Only run the animation if we're coming from the parent activity, not if
         // we're recreated automatically by the window manager (e.g., device rotation)
         if (savedInstanceState == null && hasAnim) {
-            val observer = vpPhotos.viewTreeObserver
+            val observer = binding.vpPhotos.viewTreeObserver
             observer.addOnPreDrawListener(object : ViewTreeObserver.OnPreDrawListener {
                 override fun onPreDraw(): Boolean {
-                    vpPhotos.viewTreeObserver.removeOnPreDrawListener(this)
+                    binding.vpPhotos.viewTreeObserver.removeOnPreDrawListener(this)
 
                     // Figure out where the thumbnail and full size versions are, relative
                     // to the screen and each other
                     val screenLocation = IntArray(2)
-                    vpPhotos.getLocationOnScreen(screenLocation)
+                    binding.vpPhotos.getLocationOnScreen(screenLocation)
                     thumbnailLeft -= screenLocation[0]
                     thumbnailTop -= screenLocation[1]
                     runEnterAnimation()
@@ -91,7 +91,7 @@ internal class PhotoPagerFragment : Fragment() {
                 }
             })
         }
-        vpPhotos.addOnPageChangeListener(object : OnPageChangeListener {
+        binding.vpPhotos.addOnPageChangeListener(object : OnPageChangeListener {
             override fun onPageScrolled(
                 position: Int,
                 positionOffset: Float,
@@ -129,12 +129,12 @@ internal class PhotoPagerFragment : Fragment() {
 //    ViewHelper.setTranslationY(mViewPager, thumbnailTop);
 
         // Animate scale and translation to go from thumbnail to full size
-        vpPhotos.animate()
+        binding.vpPhotos.animate()
             .setDuration(3000).interpolator = DecelerateInterpolator()
 
         // Fade in the black background
         val bgAnim = ObjectAnimator.ofInt(
-            vpPhotos.background, "alpha", 0, 255)
+            binding.vpPhotos.background, "alpha", 0, 255)
         bgAnim.duration = duration
         bgAnim.start()
 
@@ -163,7 +163,7 @@ internal class PhotoPagerFragment : Fragment() {
 
         // Animate image back to thumbnail size/location
 //    ViewPropertyAnimator.animate(mViewPager)
-        vpPhotos.animate()
+        binding.vpPhotos.animate()
             .setDuration(duration) //            .setDuration(5000)
             .alpha(0f) //            .setInterpolator(new AccelerateInterpolator())
             //            .rotationX(0)
@@ -184,7 +184,7 @@ internal class PhotoPagerFragment : Fragment() {
 
         // Fade out background
         val bgAnim = ObjectAnimator.ofInt(
-            vpPhotos.background, "alpha", 0)
+            binding.vpPhotos.background, "alpha", 0)
         bgAnim.duration = duration
         bgAnim.start()
 
@@ -203,11 +203,11 @@ internal class PhotoPagerFragment : Fragment() {
     fun setSaturation(value: Float) {
         colorizerMatrix.setSaturation(value)
         val colorizerFilter = ColorMatrixColorFilter(colorizerMatrix)
-        vpPhotos.background.colorFilter = colorizerFilter
+        binding.vpPhotos.background.colorFilter = colorizerFilter
     }
 
     fun getCurrentItem(): Int {
-        return vpPhotos.currentItem
+        return binding.vpPhotos.currentItem
     }
 
     interface AddImagePagerFragment {

@@ -25,9 +25,8 @@ import android.provider.MediaStore
 import com.gyf.immersionbar.ImmersionBar
 
 import com.lazyee.klib.photo.R
+import com.lazyee.klib.photo.databinding.ActivityCropBinding
 import com.lazyee.klib.photo.util.LogUtils
-import kotlinx.android.synthetic.main.activity_crop.*
-import kotlinx.android.synthetic.main.include_picker_header.*
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -51,6 +50,8 @@ internal class CropImageActivity : MonitoredActivity() {
     private var sampleSize = 0
     private var rotateBitmap: RotateBitmap? = null
     private var cropView: HighlightView? = null
+    private val binding by lazy { ActivityCropBinding.inflate(layoutInflater) }
+
     public override fun onCreate(icicle: Bundle?) {
         super.onCreate(icicle)
         //        setupWindowFlags();
@@ -66,21 +67,21 @@ internal class CropImageActivity : MonitoredActivity() {
     private fun setupViews() {
         setContentView(R.layout.activity_crop)
         ImmersionBar.with(this).titleBar(R.id.llTitle).barColor(R.color.header_background).init()
-        cropImageView.setRecycler(object : ImageViewTouchBase.Recycler {
+        binding.cropImageView.setRecycler(object : ImageViewTouchBase.Recycler {
             override fun recycle(b: Bitmap?) {
                 b?.recycle()
                 System.gc()
             }
         })
 
-        tvTitle.setText(R.string.crop_crop)
+        binding.pickerHeader.tvTitle.setText(R.string.crop_crop)
 
-        ivClose.setOnClickListener {
+        binding.pickerHeader.ivClose.setOnClickListener {
             setResult(RESULT_CANCELED)
             finish()
         }
-        tvDone.isEnabled = true
-        tvDone.setOnClickListener { onSaveClicked() }
+        binding.pickerHeader.tvDone.isEnabled = true
+        binding.pickerHeader.tvDone.setOnClickListener { onSaveClicked() }
     }
 
     private fun loadInput() {
@@ -161,13 +162,13 @@ internal class CropImageActivity : MonitoredActivity() {
             return
         }
         rotateBitmap?:return
-        cropImageView.setImageRotateBitmapResetBase(rotateBitmap!!, true)
+        binding.cropImageView.setImageRotateBitmapResetBase(rotateBitmap!!, true)
         CropHelper.startBackgroundJob(this, null, resources.getString(R.string.crop_wait),
             Runnable {
                 val latch = CountDownLatch(1)
                 handler.post {
-                    if (cropImageView.getScale() == 1f) {
-                        cropImageView.center()
+                    if (binding.cropImageView.getScale() == 1f) {
+                        binding.cropImageView.center()
                     }
                     latch.countDown()
                 }
@@ -184,7 +185,7 @@ internal class CropImageActivity : MonitoredActivity() {
     private inner class Cropper {
         private fun makeDefault() {
             rotateBitmap?:return
-            val hv = HighlightView(cropImageView)
+            val hv = HighlightView(binding.cropImageView)
             val width: Int = rotateBitmap!!.width
             val height: Int = rotateBitmap!!.height
             val imageRect = Rect(0, 0, width, height)
@@ -205,19 +206,19 @@ internal class CropImageActivity : MonitoredActivity() {
                 y.toFloat(),
                 (x + cropWidth).toFloat(),
                 (y + cropHeight).toFloat())
-            hv.setup(cropImageView.unrotatedMatrix,
+            hv.setup(binding.cropImageView.unrotatedMatrix,
                 imageRect,
                 cropRect,
                 aspectX != 0 && aspectY != 0)
-            cropImageView.add(hv)
+            binding.cropImageView.add(hv)
         }
 
         fun crop() {
             handler.post {
                 makeDefault()
-                cropImageView.invalidate()
-                if (cropImageView.highlightViews.size == 1) {
-                    cropView = cropImageView.highlightViews[0]
+                binding.cropImageView.invalidate()
+                if (binding.cropImageView.highlightViews.size == 1) {
+                    cropView = binding.cropImageView.highlightViews[0]
                     cropView?.setFocus(true)
                 }
             }
@@ -253,9 +254,9 @@ internal class CropImageActivity : MonitoredActivity() {
             return
         }
         if (croppedImage != null) {
-            cropImageView.setImageRotateBitmapResetBase(RotateBitmap(croppedImage, exifRotation), true)
-            cropImageView.center()
-            cropImageView.highlightViews.clear()
+            binding.cropImageView.setImageRotateBitmapResetBase(RotateBitmap(croppedImage, exifRotation), true)
+            binding.cropImageView.center()
+            binding.cropImageView.highlightViews.clear()
         }
         saveImage(croppedImage)
     }
@@ -329,7 +330,7 @@ internal class CropImageActivity : MonitoredActivity() {
     }
 
     private fun clearImageView() {
-        cropImageView.clear()
+        binding.cropImageView.clear()
         rotateBitmap?.recycle()
         System.gc()
     }
@@ -355,7 +356,7 @@ internal class CropImageActivity : MonitoredActivity() {
             setResultUri(saveUri!!)
         }
         handler.post {
-            cropImageView.clear()
+            binding.cropImageView.clear()
             croppedImage.recycle()
         }
         finish()

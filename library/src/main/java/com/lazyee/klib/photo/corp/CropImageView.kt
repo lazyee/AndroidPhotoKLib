@@ -16,12 +16,11 @@ internal class CropImageView : ImageViewTouchBase {
     private var motionEdge = 0
     private var validPointerId = 0
 
-    constructor(context: Context) : super(context) {}
-    constructor(context: Context, attrs: AttributeSet?) : super(context, attrs) {}
+    constructor(context: Context) : super(context)
+    constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
     constructor(context: Context, attrs: AttributeSet?, defStyle: Int) : super(context,
         attrs,
-        defStyle) {
-    }
+        defStyle)
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)

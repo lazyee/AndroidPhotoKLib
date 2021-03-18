@@ -10,30 +10,32 @@ import com.gyf.immersionbar.ImmersionBar
 import com.lazyee.klib.photo.PhotoHelper
 import com.lazyee.klib.photo.R
 import com.lazyee.klib.photo.bean.Photo
+import com.lazyee.klib.photo.databinding.ActivityPhotoPickerBinding
 import com.lazyee.klib.photo.picker.adapter.listener.OnPhotoSelectListener
 import com.lazyee.klib.photo.picker.fragment.PhotoPagerFragment
 import com.lazyee.klib.photo.picker.fragment.PhotoPagerFragment.AddImagePagerFragment
 import com.lazyee.klib.photo.picker.fragment.PhotoPickerFragment
-import kotlinx.android.synthetic.main.include_picker_header.*
 import java.util.*
 
 internal class PhotoPickerActivity : AppCompatActivity(), AddImagePagerFragment {
     private var pickerFragment: PhotoPickerFragment? = null
     private var imagePagerFragment: PhotoPagerFragment? = null
     private var maxCount = DEFAULT_MAX_COUNT
+    private val binding by lazy { ActivityPhotoPickerBinding.inflate(layoutInflater) }
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         ImmersionBar.with(this).barColor(R.color.header_background).init()
-        setContentView(R.layout.activity_photo_picker)
+        setContentView(binding.root)
 
         maxCount = intent.getIntExtra(EXTRA_MAX_COUNT, DEFAULT_MAX_COUNT)
         maxCount = if (maxCount < MIN_COUNT) MIN_COUNT else maxCount
 
+
         setDoneText(0)//默认一进来的时候是0个
-        tvDone.setOnClickListener { clickDone() }
-        ivClose.setOnClickListener { finish() }
+        binding.pickerHeader.tvDone.setOnClickListener { clickDone() }
+        binding.pickerHeader.ivClose.setOnClickListener { finish() }
 
         pickerFragment =
             supportFragmentManager.findFragmentById(R.id.photoPickerFragment) as PhotoPickerFragment?
@@ -46,7 +48,7 @@ internal class PhotoPickerActivity : AppCompatActivity(), AddImagePagerFragment 
                 selectedItemCount: Int
             ): Boolean {
                 val total = selectedItemCount + if (isSelect) -1 else 1
-                tvDone.isEnabled = total > 0
+                binding.pickerHeader.tvDone.isEnabled = total > 0
                 if (total > maxCount) {
                     Toast.makeText(this@PhotoPickerActivity,
                         getString(R.string.over_max_count_tips, maxCount.toString()),
@@ -60,7 +62,7 @@ internal class PhotoPickerActivity : AppCompatActivity(), AddImagePagerFragment 
     }
 
     private fun setDoneText(total:Int){
-        tvDone.text = getString(R.string.done_with_count,
+        binding.pickerHeader.tvDone.text = getString(R.string.done_with_count,
             total.toString(),
             maxCount.toString())
     }
@@ -93,7 +95,7 @@ internal class PhotoPickerActivity : AppCompatActivity(), AddImagePagerFragment 
     }
 
     private fun setDoneEnable(isEnable: Boolean) {
-        tvDone!!.isEnabled = isEnable
+        binding.pickerHeader.tvDone.isEnabled = isEnable
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

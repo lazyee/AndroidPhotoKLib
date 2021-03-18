@@ -16,7 +16,7 @@
             android:layout_height="match_parent"
             android:orientation="vertical">
 
-            <include layout="@layout/include_picker_header" />
+            <include layout="@layout/include_picker_header" android:id="@+id/pickerHeader" />
 
             <fragment
                 android:id="@+id/photoPickerFragment"
