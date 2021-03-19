@@ -65,8 +65,10 @@ internal class CropImageActivity : MonitoredActivity() {
     }
 
     private fun setupViews() {
-        setContentView(R.layout.activity_crop)
-        ImmersionBar.with(this).titleBar(R.id.llTitle).barColor(R.color.header_background).init()
+        setContentView(binding.root)
+        ImmersionBar.with(this)
+                .titleBar(binding.pickerHeader.llTitle)
+                .barColor(R.color.header_background).init()
         binding.cropImageView.setRecycler(object : ImageViewTouchBase.Recycler {
             override fun recycle(b: Bitmap?) {
                 b?.recycle()

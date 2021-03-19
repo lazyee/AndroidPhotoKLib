@@ -13,8 +13,12 @@
         android:requestLegacyExternalStorage="true"
         android:supportsRtl="true">
 
-        <activity android:name="com.lazyee.klib.photo.picker.activity.PhotoPickerActivity" android:screenOrientation="portrait"/>
-        <activity android:name="com.lazyee.klib.photo.corp.CropImageActivity" android:screenOrientation="portrait"/>
+        <activity android:name="com.lazyee.klib.photo.picker.activity.PhotoPickerActivity"
+            android:theme="@style/Theme.AndroidPhotoKLib.NoActionBar"
+            android:screenOrientation="portrait"/>
+        <activity android:name="com.lazyee.klib.photo.corp.CropImageActivity"
+            android:theme="@style/Theme.AndroidPhotoKLib.NoActionBar"
+            android:screenOrientation="portrait"/>
 
         <provider
             android:name="androidx.core.content.FileProvider"
