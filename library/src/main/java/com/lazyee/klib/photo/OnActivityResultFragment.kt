@@ -4,9 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import androidx.fragment.app.Fragment
-import com.lazyee.klib.photo.bean.Photo
 import com.lazyee.klib.photo.corp.Crop
-import com.lazyee.klib.photo.util.LogUtils
 
 /**
  * @Author leeorz

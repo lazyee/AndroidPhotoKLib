@@ -1,6 +1,5 @@
 package com.lazyee.klib.photo.picker.common
 
-import android.content.Context
 import android.database.Cursor
 import android.os.Bundle
 import android.provider.BaseColumns
@@ -10,7 +9,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.loader.app.LoaderManager
 import androidx.loader.content.Loader
 import com.lazyee.klib.photo.R
-import com.lazyee.klib.photo.bean.PhotoDirectory
+import com.lazyee.klib.photo.PhotoDirectory
 import java.io.File
 import java.util.*
 
@@ -22,6 +21,7 @@ internal object MediaStoreHelper {
     fun loadPhoto(activity: FragmentActivity, resultCallback: PhotoResultCallback?) {
         LoaderManager.getInstance(activity)
             .initLoader(0, null, PhotoLoaderCallback(activity, resultCallback))
+
     }
 }
 
@@ -30,18 +30,18 @@ interface PhotoResultCallback {
 }
 
 internal class PhotoLoaderCallback(
-    var context: Context,
+    var activity: FragmentActivity,
     var resultCallback: PhotoResultCallback?
 ) : LoaderManager.LoaderCallbacks<Cursor?> {
     override fun onCreateLoader(id: Int, args: Bundle?): Loader<Cursor?> {
-        return PhotoDirectoryLoader(context)
+        return PhotoDirectoryLoader(activity)
     }
 
     override fun onLoadFinished(loader: Loader<Cursor?>, data: Cursor?) {
         if (data == null) return
         data.moveToFirst()
         val directories: MutableList<PhotoDirectory> = ArrayList()
-        val photoDirectoryAll = PhotoDirectory(name = context.getString(R.string.all_image),id = "ALL")
+        val photoDirectoryAll = PhotoDirectory(name = activity.getString(R.string.all_image),id = "ALL")
 
         while (data.moveToNext()) {
             val imageId = data.getInt(data.getColumnIndexOrThrow(BaseColumns._ID))
@@ -75,6 +75,8 @@ internal class PhotoLoaderCallback(
         if (resultCallback != null) {
             resultCallback!!.onResultCallback(directories)
         }
+
+        LoaderManager.getInstance(activity).destroyLoader(0)
     }
 
     override fun onLoaderReset(loader: Loader<Cursor?>) {}

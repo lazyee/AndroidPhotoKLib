@@ -2,6 +2,7 @@ package com.lazyee.klib.photo.picker.fragment
 
 import android.animation.Animator
 import android.animation.ObjectAnimator
+import android.content.Context
 import android.graphics.ColorMatrix
 import android.graphics.ColorMatrixColorFilter
 import android.os.Bundle
@@ -9,17 +10,26 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
+import android.view.animation.Animation
+import android.view.animation.AnimationUtils
 import android.view.animation.DecelerateInterpolator
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager.widget.ViewPager.OnPageChangeListener
 import com.gyf.immersionbar.ImmersionBar
+import com.lazyee.klib.photo.Photo
 import com.lazyee.klib.photo.R
-import com.lazyee.klib.photo.databinding.FragmentPhotoPagerBinding
+import com.lazyee.klib.photo.databinding.FragmentPhotoPreviewBinding
+import com.lazyee.klib.photo.databinding.TemplatePreviewSelectedPhotoBinding
+import com.lazyee.klib.photo.extension.loadThumbnail
+import com.lazyee.klib.photo.picker.activity.PhotoPickerActivity
+import com.lazyee.klib.photo.picker.adapter.OnBigImageClickListener
 import com.lazyee.klib.photo.picker.adapter.PhotoPagerAdapter
 import java.util.*
 
-internal class PhotoPagerFragment : Fragment() {
-    var paths = mutableListOf<String>()
+internal class PhotoPreviewFragment : Fragment(),OnBigImageClickListener {
+//    var paths = mutableListOf<String>()
     private var mPagerAdapter: PhotoPagerAdapter? = null
     private var thumbnailTop = 0
     private var thumbnailLeft = 0
@@ -27,50 +37,43 @@ internal class PhotoPagerFragment : Fragment() {
     private var thumbnailHeight = 0
     private var hasAnim = false
     private val colorizerMatrix = ColorMatrix()
-    private var currentItem = 0
+    private var currentIndex = 0
+    private var isPreviewSelected = false
+    private lateinit var binding:FragmentPhotoPreviewBinding
+    private val selectedPhotoAdapter:SelectedPhotoAdapter by lazy { SelectedPhotoAdapter(PhotoPickerActivity.selectedPhotoList) }
 
-    fun setPhotos(paths: List<String>?, currentItem: Int) {
-        this.paths.clear()
-        this.paths.addAll(paths!!)
-        this.currentItem = currentItem
-        binding.vpPhotos.currentItem = currentItem
-        binding.vpPhotos.adapter!!.notifyDataSetChanged()
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         ImmersionBar.with(this).barColor(R.color.pager_bg).init();
-        paths = ArrayList()
         val bundle = arguments
         if (bundle != null) {
-            val pathArr = bundle.getStringArray(ARG_PATH)
-            paths.clear()
-            if (pathArr != null) {
-                paths = ArrayList(Arrays.asList(*pathArr))
-            }
             hasAnim = bundle.getBoolean(ARG_HAS_ANIM)
-            currentItem = bundle.getInt(ARG_CURRENT_ITEM)
+            currentIndex = bundle.getInt(ARG_CURRENT_ITEM)
             thumbnailTop = bundle.getInt(ARG_THUMBNAIL_TOP)
             thumbnailLeft = bundle.getInt(ARG_THUMBNAIL_LEFT)
             thumbnailWidth = bundle.getInt(ARG_THUMBNAIL_WIDTH)
             thumbnailHeight = bundle.getInt(ARG_THUMBNAIL_HEIGHT)
+            isPreviewSelected = bundle.getBoolean(ARG_IS_PREVIEW_SELECTED)
         }
-        mPagerAdapter = PhotoPagerAdapter(activity!!, paths)
+        mPagerAdapter = PhotoPagerAdapter(activity!!, PhotoPickerActivity.selectedPhotoList)
+        mPagerAdapter?.onBigImageClickListener = this
     }
-    private lateinit var binding:FragmentPhotoPagerBinding
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?): View? {
-        binding = FragmentPhotoPagerBinding.inflate(inflater,container,false)
+        savedInstanceState: Bundle?): View {
+        binding = FragmentPhotoPreviewBinding.inflate(inflater,container,false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.vpPhotos.adapter = mPagerAdapter
-        binding.vpPhotos.currentItem = currentItem
+        binding.vpPhotos.currentItem = currentIndex
         binding.vpPhotos.offscreenPageLimit = 5
+
+        binding.rlBottom.visibility = if(isPreviewSelected)View.VISIBLE else View.GONE
 
         // Only run the animation if we're coming from the parent activity, not if
         // we're recreated automatically by the window manager (e.g., device rotation)
@@ -96,15 +99,32 @@ internal class PhotoPagerFragment : Fragment() {
                 position: Int,
                 positionOffset: Float,
                 positionOffsetPixels: Int
-            ) {
-            }
+            ){}
 
             override fun onPageSelected(position: Int) {
-                hasAnim = currentItem == position
+                hasAnim = currentIndex == position
+                currentIndex = position
+                binding.rvPhotos.adapter?.notifyDataSetChanged()
             }
 
             override fun onPageScrollStateChanged(state: Int) {}
         })
+
+        binding.ivClose.setOnClickListener {
+            if (!activity!!.isFinishing) {
+                activity?.onBackPressed()
+            }
+        }
+
+        if(isPreviewSelected){
+            binding.rvPhotos.layoutManager = LinearLayoutManager(activity!!).also {
+                it.orientation = LinearLayoutManager.HORIZONTAL
+            }
+            binding.rvPhotos.adapter = selectedPhotoAdapter
+
+            binding.tvDone.isEnabled = PhotoPickerActivity.selectedPhotoList.isNotEmpty()
+            binding.tvDone.setOnClickListener { (activity as PhotoPickerActivity).clickDone() }
+        }
     }
 
     /**
@@ -140,7 +160,7 @@ internal class PhotoPagerFragment : Fragment() {
 
         // Animate a color filter to take the image from grayscale to full color.
         // This happens in parallel with the image scaling and moving into place.
-        val colorizer = ObjectAnimator.ofFloat(this@PhotoPagerFragment,
+        val colorizer = ObjectAnimator.ofFloat(this@PhotoPreviewFragment,
             "saturation", 0f, 1f)
         colorizer.duration = duration
         colorizer.start()
@@ -190,7 +210,7 @@ internal class PhotoPagerFragment : Fragment() {
 
         // Animate a color filter to take the image back to grayscale,
         // in parallel with the image scaling and moving into place.
-        val colorizer = ObjectAnimator.ofFloat(this@PhotoPagerFragment, "saturation", 1f, 0f)
+        val colorizer = ObjectAnimator.ofFloat(this@PhotoPreviewFragment, "saturation", 1f, 0f)
         colorizer.duration = duration
         colorizer.start()
     }
@@ -210,12 +230,7 @@ internal class PhotoPagerFragment : Fragment() {
         return binding.vpPhotos.currentItem
     }
 
-    interface AddImagePagerFragment {
-        fun addImagePagerFragment(imagePagerFragment: PhotoPagerFragment?)
-    }
-
     companion object {
-        const val ARG_PATH = "PATHS"
         const val ARG_CURRENT_ITEM = "ARG_CURRENT_ITEM"
         const val ANIM_DURATION = 0L
         const val ARG_THUMBNAIL_TOP = "THUMBNAIL_TOP"
@@ -223,24 +238,25 @@ internal class PhotoPagerFragment : Fragment() {
         const val ARG_THUMBNAIL_WIDTH = "THUMBNAIL_WIDTH"
         const val ARG_THUMBNAIL_HEIGHT = "THUMBNAIL_HEIGHT"
         const val ARG_HAS_ANIM = "HAS_ANIM"
-        fun newInstance(paths: List<String>, currentItem: Int): PhotoPagerFragment {
-            val f = PhotoPagerFragment()
+        const val ARG_IS_PREVIEW_SELECTED = "IS_PREVIEW_SELECTED"
+        fun newInstance(currentItem: Int,isPreviewSelected:Boolean = false): PhotoPreviewFragment {
+            val f = PhotoPreviewFragment()
             val args = Bundle()
-            args.putStringArray(ARG_PATH, paths.toTypedArray())
             args.putInt(ARG_CURRENT_ITEM, currentItem)
             args.putBoolean(ARG_HAS_ANIM, false)
+            args.putBoolean(ARG_IS_PREVIEW_SELECTED,isPreviewSelected)
             f.arguments = args
             return f
         }
 
         fun newInstance(
-            paths: List<String>,
             currentItem: Int,
             screenLocation: IntArray,
             thumbnailWidth: Int,
-            thumbnailHeight: Int
-        ): PhotoPagerFragment {
-            val f = newInstance(paths, currentItem)
+            thumbnailHeight: Int,
+            isPreviewSelected:Boolean = false
+        ): PhotoPreviewFragment {
+            val f = newInstance(currentItem)
             f.arguments!!
                 .putInt(ARG_THUMBNAIL_LEFT, screenLocation[0])
             f.arguments!!.putInt(ARG_THUMBNAIL_TOP, screenLocation[1])
@@ -249,7 +265,91 @@ internal class PhotoPagerFragment : Fragment() {
             f.arguments!!
                 .putInt(ARG_THUMBNAIL_HEIGHT, thumbnailHeight)
             f.arguments!!.putBoolean(ARG_HAS_ANIM, true)
+            f.arguments!!.putBoolean(ARG_IS_PREVIEW_SELECTED,isPreviewSelected)
             return f
         }
     }
+
+    //动画
+    private var isAnimPlaying = false
+    private val topAnimIn by lazy { AnimationUtils.loadAnimation(activity,R.anim.anim_preview_top_in).also {
+        it.setAnimationListener(object :Animation.AnimationListener{
+            override fun onAnimationStart(animation: Animation?) {
+                isAnimPlaying = true
+                binding.llTop.visibility = View.VISIBLE
+
+                if(!isPreviewSelected)return
+                binding.rlBottom.visibility = View.VISIBLE
+
+            }
+
+            override fun onAnimationEnd(animation: Animation?) {
+                isAnimPlaying = false
+            }
+
+            override fun onAnimationRepeat(animation: Animation?) {
+
+            }
+
+        })
+    } }
+    private val topAnimOut by lazy { AnimationUtils.loadAnimation(activity,R.anim.anim_preview_top_out).also {
+        it.setAnimationListener(object :Animation.AnimationListener{
+            override fun onAnimationStart(animation: Animation?) {
+                isAnimPlaying = true
+            }
+
+            override fun onAnimationEnd(animation: Animation?) {
+                isAnimPlaying = false
+                binding.llTop.visibility = View.GONE
+                if(!isPreviewSelected)return
+                binding.rlBottom.visibility = View.GONE
+            }
+
+            override fun onAnimationRepeat(animation: Animation?) {
+
+            }
+        })
+    } }
+
+    private val bottomAnimIn by lazy { AnimationUtils.loadAnimation(activity,R.anim.anim_preview_bottom_in) }
+    private val bottomAnimOut by lazy { AnimationUtils.loadAnimation(activity,R.anim.anim_preview_bottom_out) }
+
+    override fun onClickBigImage() {
+        if(binding.llTop.isShown){
+            binding.llTop.startAnimation(topAnimOut)
+        }else{
+            binding.llTop.startAnimation(topAnimIn)
+        }
+
+        if(isPreviewSelected){
+            if(binding.rlBottom.isShown){
+                binding.rlBottom.startAnimation(bottomAnimIn)
+            }else{
+                binding.rlBottom.startAnimation(bottomAnimOut)
+            }
+        }
+    }
+
+    //选中的图片的适配器
+    inner class SelectedPhotoAdapter(private val photos:List<Photo>) :RecyclerView.Adapter<SelectedPhotoViewHolder>(){
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SelectedPhotoViewHolder {
+            return SelectedPhotoViewHolder(TemplatePreviewSelectedPhotoBinding.inflate(LayoutInflater.from(parent.context),parent,false))
+        }
+
+        override fun onBindViewHolder(holder: SelectedPhotoViewHolder, position: Int) {
+            holder.binding.ivImage.loadThumbnail(photos[position].path!!)
+            holder.binding.ivImage.setOnClickListener {
+                binding.vpPhotos.setCurrentItem(position,false)
+            }
+            holder.binding.llCurrent.visibility = if(position == currentIndex)View.VISIBLE else View.GONE
+        }
+
+        override fun getItemCount(): Int {
+            return photos.size
+        }
+    }
+
+    inner class SelectedPhotoViewHolder(val binding: TemplatePreviewSelectedPhotoBinding):RecyclerView.ViewHolder(binding.root)
 }
+

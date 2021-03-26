@@ -67,7 +67,7 @@ internal class CropImageActivity : MonitoredActivity() {
     private fun setupViews() {
         setContentView(binding.root)
         ImmersionBar.with(this)
-                .titleBar(binding.pickerHeader.llTitle)
+                .titleBar(binding.rlHeader)
                 .barColor(R.color.header_background).init()
         binding.cropImageView.setRecycler(object : ImageViewTouchBase.Recycler {
             override fun recycle(b: Bitmap?) {
@@ -82,8 +82,8 @@ internal class CropImageActivity : MonitoredActivity() {
             setResult(RESULT_CANCELED)
             finish()
         }
-        binding.pickerHeader.tvDone.isEnabled = true
-        binding.pickerHeader.tvDone.setOnClickListener { onSaveClicked() }
+        binding.tvDone.isEnabled = true
+        binding.tvDone.setOnClickListener { onSaveClicked() }
     }
 
     private fun loadInput() {

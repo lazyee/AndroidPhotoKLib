@@ -16,13 +16,86 @@
             android:layout_height="match_parent"
             android:orientation="vertical">
 
-            <include layout="@layout/include_picker_header" android:id="@+id/pickerHeader" />
-
-            <fragment
-                android:id="@+id/photoPickerFragment"
-                android:name="com.lazyee.klib.photo.picker.fragment.PhotoPickerFragment"
+            <RelativeLayout
+                android:id="@+id/rlHeader"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+                android:layout_height="wrap_content">
+
+                <include
+                    android:id="@+id/pickerHeader"
+                    layout="@layout/include_picker_header" />
+
+                <LinearLayout
+                    android:id="@+id/llDirectoryOptions"
+                    android:layout_width="wrap_content"
+                    android:layout_height="30dp"
+                    android:layout_centerInParent="true"
+                    android:background="@drawable/bg_directory_options"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:paddingLeft="10dp"
+                    android:paddingRight="5dp">
+
+                    <TextView
+                        android:id="@+id/tvDirectoryName"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:maxWidth="100dp"
+                        android:maxLines="1"
+                        android:textColor="@android:color/white"
+                        android:textSize="16sp" />
+
+                    <ImageView
+                        android:id="@+id/ivArrow"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_marginLeft="5dp"
+                        android:background="@drawable/bg_directory_options_arrow"
+                        android:padding="5dp"
+                        android:src="@drawable/ic_arrow_down" />
+                </LinearLayout>
+            </RelativeLayout>
+
+            <FrameLayout
+                android:id="@+id/flContent"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="@color/header_background"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp">
+
+                <TextView
+                    android:id="@+id/tvPreview"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/Preview"
+                    android:textColor="@android:color/white"
+                    android:textSize="16sp"
+                    android:enabled="false"
+                    android:layout_weight="1" />
+
+                <TextView
+                    android:id="@+id/tvDone"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginRight="5dp"
+                    android:background="@drawable/selector_done_background"
+                    android:enabled="false"
+                    android:paddingLeft="15dp"
+                    android:paddingTop="5dp"
+                    android:paddingRight="15dp"
+                    android:paddingBottom="5dp"
+                    android:text="@string/done"
+                    android:textColor="@color/selector_done_text_color" />
+            </LinearLayout>
         </LinearLayout>
 
 

@@ -8,7 +8,6 @@ import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.media.ExifInterface
 import android.util.DisplayMetrics
-import android.util.Log
 import android.view.View
 import java.io.*
 import java.nio.channels.FileChannel

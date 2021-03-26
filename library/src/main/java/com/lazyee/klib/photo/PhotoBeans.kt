@@ -1,4 +1,4 @@
-package com.lazyee.klib.photo.bean
+package com.lazyee.klib.photo
 
 /**
  * @Author leeorz

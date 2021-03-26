@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="60dp"
+    android:layout_marginRight="10dp"
+    android:layout_height="60dp">
+    <ImageView
+        android:id="@+id/ivImage"
+        android:layout_width="60dp"
+        android:layout_height="60dp"/>
+    <LinearLayout
+        android:id="@+id/llCurrent"
+        android:background="@drawable/bg_preview_border"
+        android:layout_width="60dp"
+        android:layout_height="60dp"/>
+</RelativeLayout>

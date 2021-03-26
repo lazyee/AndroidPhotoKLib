@@ -1,12 +1,13 @@
 package com.lazyee.klib.photo.picker.adapter.listener
 
 import android.view.View
-import com.lazyee.klib.photo.bean.Photo
+import com.lazyee.klib.photo.Photo
 
 /**
  * 图片选择监听
  */
 interface OnPhotoSelectListener {
+
     /***
      *
      * @param position 所选图片的位置
@@ -15,7 +16,7 @@ interface OnPhotoSelectListener {
      * @param selectedItemCount  已选数量
      * @return enable check
      */
-    fun onPhotoSelect(position: Int, path: Photo, isSelect: Boolean, selectedItemCount: Int): Boolean
+    fun onPhotoSelect(position: Int, photo: Photo, isSelect: Boolean, selectedItemCount: Int): Boolean
 }
 
 /**

@@ -10,7 +10,7 @@ import com.lazyee.app.databinding.ActivityMainBinding
 import com.lazyee.klib.photo.HandlePhotoCallback
 import com.lazyee.klib.photo.OnRequestPermissionDeniedListener
 import com.lazyee.klib.photo.PhotoHelper
-import com.lazyee.klib.photo.bean.Photo
+import com.lazyee.klib.photo.Photo
 
 /**
  * @Author leeorz

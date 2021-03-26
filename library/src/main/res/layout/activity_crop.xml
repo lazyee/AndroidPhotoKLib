@@ -5,7 +5,34 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <include layout="@layout/include_picker_header" android:id="@+id/pickerHeader"/>
+    <RelativeLayout
+        android:id="@+id/rlHeader"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="48dp">
+        <include layout="@layout/include_picker_header" android:id="@+id/pickerHeader"/>
+        <TextView
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:id="@+id/tvDone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="5dp"
+
+            android:background="@drawable/selector_done_background"
+            android:enabled="false"
+            android:paddingLeft="15dp"
+            android:paddingTop="5dp"
+            android:paddingRight="15dp"
+            android:paddingBottom="5dp"
+            android:text="@string/done"
+            android:textColor="@color/selector_done_text_color" />
+        </RelativeLayout>
+    </RelativeLayout>
+
+
     <com.lazyee.klib.photo.corp.CropImageView
         android:id="@+id/cropImageView"
         android:layout_width="match_parent"

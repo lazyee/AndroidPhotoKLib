@@ -2,9 +2,9 @@
 <resources>
 
 
-    <color name="colorPrimary">#3F51B5</color>
-    <color name="colorPrimaryDark">#303F9F</color>
-    <color name="colorAccent">#00FF00</color>
+    <color name="colorPrimary">#FF218e0d</color>
+    <color name="colorPrimaryDark">#FF218e0d</color>
+    <color name="colorAccent">#FF218e0d</color>
 
 
     <!-- photo picker -->
@@ -12,7 +12,7 @@
     <color name="common_primary">#f3f3f3</color>
     <color name="text_40">#282828</color>
 
-    <color name="header_background">#FF444444</color>
+    <color name="header_background">#FF202020</color>
     <color name="header_done_background">#FF218e0d</color>
     <color name="header_done_disable_background">#FF525552</color>
 </resources>

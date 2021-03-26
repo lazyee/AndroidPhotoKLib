@@ -15,7 +15,6 @@ import androidx.fragment.app.FragmentActivity
 import com.hjq.permissions.OnPermissionCallback
 import com.hjq.permissions.Permission
 import com.hjq.permissions.XXPermissions
-import com.lazyee.klib.photo.bean.Photo
 import com.lazyee.klib.photo.corp.Crop
 import com.lazyee.klib.photo.picker.activity.PhotoPickerActivity
 import com.lazyee.klib.photo.picker.common.PhotoPickerIntent

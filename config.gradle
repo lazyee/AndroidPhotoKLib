@@ -32,8 +32,7 @@ ext {
 
             immersionbar              : "3.0.0",
 
-
-            xxpermissions             : "10.2"
+            xxpermissions             : "10.2",
     ]
     options = [
             minify_enabled: false,
