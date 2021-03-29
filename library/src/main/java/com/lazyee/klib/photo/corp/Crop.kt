@@ -13,19 +13,13 @@ import com.lazyee.klib.photo.R
 /**
  * Builder for crop Intents and utils for handling result
  */
-class Crop private constructor(source: Uri, destination: Uri) {
+object Crop {
+    const val ASPECT_X = "aspect_x"
+    const val ASPECT_Y = "aspect_y"
+    const val MAX_X = "max_x"
+    const val MAX_Y = "max_y"
+    const val ERROR = "error"
 
-    internal interface Extra {
-        companion object {
-            const val ASPECT_X = "aspect_x"
-            const val ASPECT_Y = "aspect_y"
-            const val MAX_X = "max_x"
-            const val MAX_Y = "max_y"
-            const val ERROR = "error"
-        }
-    }
-
-    private val cropIntent: Intent
 
     /**
      * Set fixed aspect ratio for crop area
@@ -33,18 +27,18 @@ class Crop private constructor(source: Uri, destination: Uri) {
      * @param x Aspect X
      * @param y Aspect Y
      */
-    fun withAspect(x: Int, y: Int): Crop {
-        cropIntent.putExtra(Extra.ASPECT_X, x)
-        cropIntent.putExtra(Extra.ASPECT_Y, y)
+    fun withAspect(intent :Intent,x: Int, y: Int): Crop {
+        intent.putExtra(ASPECT_X, x)
+        intent.putExtra(ASPECT_Y, y)
         return this
     }
 
     /**
      * Crop area with fixed 1:1 aspect ratio
      */
-    fun asSquare(): Crop {
-        cropIntent.putExtra(Extra.ASPECT_X, 1)
-        cropIntent.putExtra(Extra.ASPECT_Y, 1)
+    fun asSquare(intent :Intent,): Crop {
+        intent.putExtra(ASPECT_X, 1)
+        intent.putExtra(ASPECT_Y, 1)
         return this
     }
 
@@ -54,50 +48,19 @@ class Crop private constructor(source: Uri, destination: Uri) {
      * @param width  Max width
      * @param height Max height
      */
-    fun withMaxSize(width: Int, height: Int): Crop {
-        cropIntent.putExtra(Extra.MAX_X, width)
-        cropIntent.putExtra(Extra.MAX_Y, height)
+    fun withMaxSize(intent:Intent,width: Int, height: Int): Crop {
+        intent.putExtra(MAX_X, width)
+        intent.putExtra(MAX_Y, height)
         return this
     }
 
 
-    fun start(fragment: Fragment?, requestCode: Int = REQUEST_CROP) {
-        fragment?.startActivityForResult(getIntent(fragment.context), requestCode)
+    fun start(fragment: Fragment,intent:Intent, requestCode: Int = REQUEST_CROP) {
+        fragment.startActivityForResult(intent, requestCode)
     }
 
-    fun start(activity: Activity?, requestCode: Int = REQUEST_CROP) {
-        activity?.startActivityForResult(getIntent(activity), requestCode)
-    }
-
-    /**
-     * Send the crop Intent from a Fragment
-     *
-     * @param context  Context
-     * @param fragment Fragment to receive result
-     */
-    fun start(context: Context?, fragment: Fragment) {
-        start(context, fragment, REQUEST_CROP)
-    }
-
-    /**
-     * Send the crop Intent with a custom request code
-     *
-     * @param context     Context
-     * @param fragment    Fragment to receive result
-     * @param requestCode requestCode for result
-     */
-    /**
-     * Send the crop Intent from a support library Fragment
-     *
-     * @param context  Context
-     * @param fragment Fragment to receive result
-     */
-    fun start(
-        context: Context?,
-        fragment: Fragment,
-        requestCode: Int = REQUEST_CROP
-    ) {
-        fragment.startActivityForResult(getIntent(context), requestCode)
+    fun start(activity: Activity,intent: Intent,requestCode: Int = REQUEST_CROP) {
+        activity.startActivityForResult(intent, requestCode)
     }
 
     /**
@@ -106,25 +69,19 @@ class Crop private constructor(source: Uri, destination: Uri) {
      * @param context Context
      * @return Intent for CropImageActivity
      */
-    fun getIntent(context: Context?): Intent {
-        cropIntent.setClass(context!!, CropImageActivity::class.java)
+    fun getIntent(context: Context,source: Uri, destination: Uri): Intent {
+        val cropIntent = Intent()
+        cropIntent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+        cropIntent.data = source
+        cropIntent.putExtra(MediaStore.EXTRA_OUTPUT, destination)
+        cropIntent.setClass(context, CropImageActivity::class.java)
         return cropIntent
     }
 
-    companion object {
+
         const val REQUEST_CROP = 6709
         const val REQUEST_PICK = 9162
         const val RESULT_ERROR = 404
-
-        /**
-         * Create a crop Intent builder with source and destination image Uris
-         *
-         * @param source      Uri for image to crop
-         * @param destination Uri for saving the cropped image
-         */
-        fun of(source: Uri, destination: Uri): Crop {
-            return Crop(source, destination)
-        }
 
         /**
          * Retrieve URI for cropped image, as set in the Intent builder
@@ -143,7 +100,7 @@ class Crop private constructor(source: Uri, destination: Uri) {
          */
         fun getError(result: Intent?): Throwable {
             result?:return NullPointerException()
-            return result.getSerializableExtra(Extra.ERROR) as Throwable
+            return result.getSerializableExtra(ERROR) as Throwable
         }
 
         /**
@@ -189,7 +146,7 @@ class Crop private constructor(source: Uri, destination: Uri) {
          * @param context  Context
          * @param fragment Fragment to receive result
          */
-        fun pickImage(
+        private fun pickImage(
             context: Context?,
             fragment: Fragment,
             requestCode: Int = REQUEST_PICK
@@ -207,12 +164,5 @@ class Crop private constructor(source: Uri, destination: Uri) {
         private fun showImagePickerError(context: Context?) {
             Toast.makeText(context, R.string.crop_pick_error, Toast.LENGTH_SHORT).show()
         }
-    }
 
-    init {
-        cropIntent = Intent()
-        cropIntent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
-        cropIntent.data = source
-        cropIntent.putExtra(MediaStore.EXTRA_OUTPUT, destination)
-    }
 }

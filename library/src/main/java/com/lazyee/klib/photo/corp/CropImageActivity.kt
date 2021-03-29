@@ -90,10 +90,10 @@ internal class CropImageActivity : MonitoredActivity() {
         val intent = intent
         val extras = intent.extras
         if (extras != null) {
-            aspectX = extras.getInt(Crop.Extra.ASPECT_X)
-            aspectY = extras.getInt(Crop.Extra.ASPECT_Y)
-            maxX = extras.getInt(Crop.Extra.MAX_X)
-            maxY = extras.getInt(Crop.Extra.MAX_Y)
+            aspectX = extras.getInt(Crop.ASPECT_X)
+            aspectY = extras.getInt(Crop.ASPECT_Y)
+            maxX = extras.getInt(Crop.MAX_X)
+            maxY = extras.getInt(Crop.MAX_Y)
             saveUri = extras.getParcelable(MediaStore.EXTRA_OUTPUT)
         }
         sourceUri = intent.data
@@ -378,7 +378,7 @@ internal class CropImageActivity : MonitoredActivity() {
     }
 
     private fun setResultException(throwable: Throwable) {
-        setResult(Crop.RESULT_ERROR, Intent().putExtra(Crop.Extra.ERROR, throwable))
+        setResult(Crop.RESULT_ERROR, Intent().putExtra(Crop.ERROR, throwable))
     }
 
     companion object {

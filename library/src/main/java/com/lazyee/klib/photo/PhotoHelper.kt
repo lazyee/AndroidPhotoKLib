@@ -48,6 +48,7 @@ class PhotoHelper(private val mActivity: FragmentActivity) {
     private var maxHeight = 500
     private var handlePhotoCallback: HandlePhotoCallback? = null
 
+
     private var onActivityResultFragment: OnActivityResultFragment? = null
     private var onRequestPermissionDeniedListener:OnRequestPermissionDeniedListener? = null
 
@@ -168,7 +169,6 @@ class PhotoHelper(private val mActivity: FragmentActivity) {
     /**
      * 打开相册
      * @param photoCount Int
-     * @param onPermissionDenied Function2<MutableList<String>?, Boolean, Unit>?
      */
     fun openAlbum(photoCount: Int) {
         if(handlePhotoCallback == null){
@@ -209,7 +209,11 @@ class PhotoHelper(private val mActivity: FragmentActivity) {
                 BitmapUtils.readPictureDegree(imagePath),
                 getAbsolutePath(imagePath))
             if (isCrop) {
-                beginCrop(fragment = onActivityResultFragment,path = imagePath)
+                removeOnActivityResultFragment()
+                val intent  = getCropIntent(imagePath)
+                intent?:return
+                onActivityResultFragment = obtainOnActivityResultFragment(intent, Crop.REQUEST_CROP)
+                addFragmentToFragmentActivity(onActivityResultFragment!!)
             } else {
                 if(TextUtils.isEmpty(imagePath)){
                     removeOnActivityResultFragment()
@@ -238,28 +242,23 @@ class PhotoHelper(private val mActivity: FragmentActivity) {
         val photoPathList = data.getStringArrayListExtra(PhotoPickerActivity.KEY_SELECTED_PHOTOS)
 
         photoPathList ?: return
-//        if (photoPathList.size == 1 && isCrop) {
-//            beginCrop(photoPathList[0])
-//        } else {
-            if(handlePhotoCallback == null){
-                removeOnActivityResultFragment()
-                return
-            }
-            val photos = mutableListOf<Photo>()
-            photoPathList.forEach {
-                val size = getImageSize(it)
-                photos.add(Photo(it, size[0], size[1]))
-            }
+        if(handlePhotoCallback == null){
             removeOnActivityResultFragment()
-            handlePhotoCallback!!.onComplete(photos)
-
-//        }
+            return
+        }
+        val photos = mutableListOf<Photo>()
+        photoPathList.forEach {
+            val size = getImageSize(it)
+            photos.add(Photo(it, size[0], size[1]))
+        }
+        removeOnActivityResultFragment()
+        handlePhotoCallback!!.onComplete(photos)
     }
 
-    internal fun beginCrop(fragment:Fragment? = null,activity: Activity? = null,path: String?) {
-        path ?: return
+    internal fun getCropIntent(path: String?): Intent? {
+        path ?: return null
         val absolutePath = getAbsolutePath(path)
-        absolutePath ?: return
+        absolutePath ?: return null
         val file = File(absolutePath)
         var source: Uri? = null
 
@@ -269,11 +268,11 @@ class PhotoHelper(private val mActivity: FragmentActivity) {
 //            24版本以下的直接获取Uri即可
             Uri.fromFile(file)
         }
-        val outputPath = File(mActivity.filesDir, "images/")
+        val outputPath = File(mActivity.filesDir, imagePathConfig + File.separator)
         if (!outputPath.exists()) {
             outputPath.mkdirs()
         }
-        val output = File(mActivity.filesDir, "images/" + System.currentTimeMillis() + ".jpg")
+        val output = File(mActivity.filesDir, imagePathConfig + File.separator + System.currentTimeMillis() + ".jpg")
 
         try {
             output.createNewFile()
@@ -286,20 +285,24 @@ class PhotoHelper(private val mActivity: FragmentActivity) {
         } else {
             Uri.fromFile(output)
         }
-        val crop: Crop = Crop.of(source, destination)
-        crop.withMaxSize(maxWidth, maxHeight)
+        val intent: Intent = Crop.getIntent(mActivity,source, destination)
+        Crop.withMaxSize(intent,maxWidth, maxHeight)
         if (!isFreeCrop) {
-            crop.withAspect(aspectX, aspectY)
+            Crop.withAspect(intent,aspectX, aspectY)
         }
+        return intent
+    }
+
+    internal fun beginCrop(fragment:Fragment? = null,activity: FragmentActivity? = null,path: String?) {
+        val intent = getCropIntent(path)
+        intent?:return
         if(fragment != null){
-            crop.start(fragment)
-            return
+            Crop.start(fragment,intent)
         }
 
         if(activity != null){
-            crop.start(activity)
+            Crop.start(activity,intent)
         }
-
     }
 
     private fun handleCrop(resultCode: Int, result: Intent?) {
@@ -329,12 +332,7 @@ class PhotoHelper(private val mActivity: FragmentActivity) {
 
     // 创建目录
     private fun obtainNewImageUri(): Uri {
-
-        val path = "images/default.jpg"
-        val dir = File(mActivity.filesDir.absoluteFile.toString() + File.separator + "images")
-        if (!dir.exists()) { // 创建目录
-            dir.mkdirs()
-        }
+        val path = "${imagePathConfig}${File.separator}${System.currentTimeMillis()}.jpg"
         val file = File(mActivity.filesDir, path)
         outputImagePath = file.absolutePath
         val uri = FileProvider.getUriForFile(mActivity, FILE_PROVIDER, file)
@@ -382,10 +380,20 @@ class PhotoHelper(private val mActivity: FragmentActivity) {
         private var FILE_PROVIDER = ""
         const val CAMERA = 10001
         const val ALBUM = 10002
+
+        private val imagePathConfig = "AndroidPhotoKLib"
+
         fun init(applicationId: String) {
             FILE_PROVIDER = "$applicationId.fileprovider"
         }
 
-
+        /**
+         * 删除所有的图片，卡主线程
+         * @param mActivity FragmentActivity
+         */
+        fun clearImages(mActivity: FragmentActivity){
+            val dir = File(mActivity.filesDir.absoluteFile.toString() + File.separator + imagePathConfig + File.separator)
+            dir.listFiles()?.forEach { it.delete() }
+        }
     }
 }
