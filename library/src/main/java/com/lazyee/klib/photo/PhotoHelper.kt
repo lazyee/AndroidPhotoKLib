@@ -388,12 +388,15 @@ class PhotoHelper(private val mActivity: FragmentActivity) {
         }
 
         /**
-         * 删除所有的图片，卡主线程
+         * 删除所有的图片
          * @param mActivity FragmentActivity
          */
-        fun clearImages(mActivity: FragmentActivity){
-            val dir = File(mActivity.filesDir.absoluteFile.toString() + File.separator + imagePathConfig + File.separator)
-            dir.listFiles()?.forEach { it.delete() }
+        fun clearImages(mActivity: FragmentActivity,callback:()->Unit){
+            Thread{
+                val dir = File(mActivity.filesDir.absoluteFile.toString() + File.separator + imagePathConfig + File.separator)
+                dir.listFiles()?.forEach { it.delete() }
+                mActivity.runOnUiThread{ callback() }
+            }.start()
         }
     }
 }

@@ -24,7 +24,6 @@ import com.lazyee.klib.photo.picker.adapter.PhotoPagerAdapter
 internal class PhotoPreviewFragment : Fragment(),OnBigImageClickListener {
     private val removePhotoList = mutableListOf<Photo>()
     private var mPagerAdapter: PhotoPagerAdapter? = null
-    private var maxCount: Int = PhotoPickerActivity.DEFAULT_MAX_COUNT
     private lateinit var binding: FragmentPhotoPreviewBinding
     private val selectedPhotoAdapter: SelectedPhotoAdapter by lazy { SelectedPhotoAdapter(photoList!!) }
 

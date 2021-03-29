@@ -169,7 +169,7 @@ internal class PhotoPickerActivity : AppCompatActivity(),OnPhotoSelectListener {
         PhotoPreviewFragment.maxCount = maxCount
         PhotoPreviewFragment.isPreviewSelected = true
         PhotoPreviewFragment.photoList = selectedPhotoList
-
+        PhotoPreviewFragment.maxCount = maxCount
         val imagePagerFragment = PhotoPreviewFragment.newInstance(0)
         addImagePagerFragment(imagePagerFragment)
     }
