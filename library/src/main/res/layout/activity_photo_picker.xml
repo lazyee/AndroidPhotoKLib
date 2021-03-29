@@ -16,12 +16,14 @@
             android:orientation="vertical">
 
             <RelativeLayout
+                android:id="@+id/rlHeader"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
-                <include layout="@layout/include_picker_header" />
+                <include layout="@layout/include_picker_header" android:id="@+id/pickerHeader"/>
 
                 <LinearLayout
+                    android:id="@+id/llDirectoryOptions"
                     android:layout_width="wrap_content"
                     android:layout_height="30dp"
                     android:layout_centerInParent="true"
@@ -32,6 +34,7 @@
                     android:paddingRight="5dp">
 
                     <TextView
+                        android:id="@+id/tvDirectoryName"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:ellipsize="end"
@@ -66,6 +69,7 @@
                 android:paddingEnd="10dp">
 
                 <TextView
+                    android:id="@+id/tvPreview"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:text="@string/Preview"
@@ -75,6 +79,7 @@
                     android:layout_weight="1" />
 
                 <TextView
+                    android:id="@+id/tvDone"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginRight="5dp"

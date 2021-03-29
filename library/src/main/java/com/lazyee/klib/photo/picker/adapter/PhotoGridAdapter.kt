@@ -57,7 +57,7 @@ class PhotoGridAdapter(val context: Context, val photos: List<Photo>) :
 
     private fun setSelected(holder: PhotoViewHolder, isSelected: Boolean) {
         holder.binding.ivSelected.setImageResource(if (isSelected) R.drawable.ic_picker_checked else R.drawable.ic_picker_check)
-        holder.binding.vSelectedMask.visibility = if (isSelected) View.VISIBLE else View.GONE
+        holder.binding.maskView.visibility = if (isSelected) View.VISIBLE else View.GONE
     }
 
     override fun getItemCount(): Int {

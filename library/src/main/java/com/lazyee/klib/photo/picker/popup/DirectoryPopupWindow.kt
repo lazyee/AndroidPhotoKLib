@@ -89,7 +89,7 @@ class DirectoryPopupWindow(private val mContext: Context) : PopupWindow() {
 
     fun setData(data: List<PhotoDirectory>): DirectoryPopupWindow {
         directoryList = data
-        binding.rvDirectory.adapter = DirectoryAdapter(this, mContext, data)
+        binding.rvDirectory.adapter = DirectoryAdapter(this, data)
         return this
     }
 
@@ -118,7 +118,6 @@ class DirectoryPopupWindow(private val mContext: Context) : PopupWindow() {
 
     inner class DirectoryAdapter(
         private val popupWindow: DirectoryPopupWindow,
-        private val context: Context,
         private val directoryList: List<PhotoDirectory>
     ) : RecyclerView.Adapter<DirectoryViewHolder>() {
 

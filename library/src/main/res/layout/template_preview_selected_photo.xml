@@ -5,15 +5,18 @@
     android:layout_marginRight="10dp"
     android:layout_height="60dp">
     <ImageView
+        android:id="@+id/ivImage"
         android:layout_width="60dp"
         android:layout_height="60dp"/>
     <View
+        android:id="@+id/maskView"
         tools:visibility="visible"
         android:visibility="gone"
         android:layout_width="60dp"
         android:layout_height="60dp"
         android:background="#90000000"/>
     <LinearLayout
+        android:id="@+id/llCurrent"
         android:orientation="vertical"
         android:background="@drawable/bg_preview_border"
         android:layout_width="60dp"

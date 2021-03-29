@@ -108,6 +108,9 @@ internal class PhotoPickerActivity : AppCompatActivity(),OnPhotoSelectListener {
     override fun onBackPressed() {
         if (imagePagerFragment != null && imagePagerFragment!!.isVisible) {
 //            supportFragmentManager.popBackStack()
+            selectedPhotoList.removeAll(imagePagerFragment!!.getRemovePhotoList())
+            notifyDataSetChanged()
+
             supportFragmentManager.beginTransaction()
                 .setCustomAnimations(R.anim.anim_preview_fragment_in,R.anim.anim_preview_fragment_out)
                 .remove(imagePagerFragment!!)
