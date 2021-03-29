@@ -8,21 +8,19 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
         <ImageView
-            android:id="@+id/iv_photo"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_gravity="center"
             android:adjustViewBounds="true"
             android:padding="1dip"
             android:scaleType="centerCrop" />
-        <View android:id="@+id/vSelectedMask"
+        <View
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="#60000000"
             />
         <ImageView
             android:layout_alignParentRight="true"
-            android:id="@+id/ivSelected"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:src="@drawable/ic_picker_check"

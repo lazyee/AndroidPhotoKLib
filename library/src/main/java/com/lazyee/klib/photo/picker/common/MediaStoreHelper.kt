@@ -8,8 +8,8 @@ import android.text.TextUtils
 import androidx.fragment.app.FragmentActivity
 import androidx.loader.app.LoaderManager
 import androidx.loader.content.Loader
-import com.lazyee.klib.photo.R
 import com.lazyee.klib.photo.PhotoDirectory
+import com.lazyee.klib.photo.R
 import java.io.File
 import java.util.*
 
@@ -41,7 +41,7 @@ internal class PhotoLoaderCallback(
         if (data == null) return
         data.moveToFirst()
         val directories: MutableList<PhotoDirectory> = ArrayList()
-        val photoDirectoryAll = PhotoDirectory(name = activity.getString(R.string.all_image),id = "ALL")
+        val photoDirectoryAll = PhotoDirectory(name = activity.getString(R.string.recent_image),id = "RECENT")
 
         while (data.moveToNext()) {
             val imageId = data.getInt(data.getColumnIndexOrThrow(BaseColumns._ID))

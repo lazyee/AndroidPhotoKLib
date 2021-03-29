@@ -18,25 +18,7 @@ internal class PhotoPickerFragment : Fragment() {
     var photoGridAdapter: PhotoGridAdapter? = null
         private set
     private var isSelectSingle = false //默认可以选择多张
-//    private var listAdapter: PopupDirectoryListAdapter? = null
-//    private var directories: MutableList<PhotoDirectory>? = null
-
     private lateinit var binding: FragmentPhotoPickerBinding
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-//        directories = ArrayList()
-
-//        MediaStoreHelper.loadPhoto(activity!!,
-//            object :PhotoResultCallback{
-//                override fun onResultCallback(directories: List<PhotoDirectory>?) {
-//                    this@PhotoPickerFragment.directories?.clear()
-//                    this@PhotoPickerFragment.directories?.addAll(directories!!)
-//                    photoGridAdapter?.notifyDataSetChanged()
-//                    listAdapter?.notifyDataSetChanged()
-//                }
-//            })
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -50,42 +32,11 @@ internal class PhotoPickerFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-//        listAdapter = PopupDirectoryListAdapter(activity!!, directories!!)
-
-
-
-
         binding.rvPhotos.itemAnimator = DefaultItemAnimator()
+    }
 
-
-//        val listPopupWindow = ListPopupWindow(
-//            activity!!)
-//        listPopupWindow.width = ListPopupWindow.MATCH_PARENT
-//        listPopupWindow.anchorView = binding.tvDir
-//        listPopupWindow.setAdapter(listAdapter)
-//        listPopupWindow.isModal = true
-//        listPopupWindow.setDropDownGravity(Gravity.BOTTOM)
-//        listPopupWindow.animationStyle = R.style.Animation_AppCompat_DropDownUp
-//        listPopupWindow.setOnItemClickListener { parent, view, position, id ->
-//            listPopupWindow.dismiss()
-//            val (_, _, name) = directories!![position]
-//            binding.tvDir.text = name
-//            photoGridAdapter!!.setDirectoryIndex(position)
-//            photoGridAdapter!!.notifyDataSetChanged()
-//        }
-
-
-
-//        binding.llAllImage.setOnClickListener {
-//            if (listPopupWindow.isShowing) {
-//                listPopupWindow.dismiss()
-//            } else if (!activity!!.isFinishing) {
-//
-//                listPopupWindow.height = (binding.root.height* 0.8f).toInt()
-//                listPopupWindow.show()
-//            }
-//        }
+    fun notifyDataSetChanged(){
+        photoGridAdapter?.notifyDataSetChanged()
     }
 
     fun setData(directory: PhotoDirectory){
@@ -98,10 +49,11 @@ internal class PhotoPickerFragment : Fragment() {
 
         photoGridAdapter!!.setOnPhotoClickListener(object : OnPhotoClickListener {
             override fun onPhotoClick(v: View, position: Int) {
-                val screenLocation = IntArray(2)
-                v.getLocationOnScreen(screenLocation)
-                val imagePagerFragment =
-                    PhotoPreviewFragment.newInstance( position, screenLocation, v.width, v.height)
+
+                PhotoPreviewFragment.photoList = directory.photos
+                PhotoPreviewFragment.isPreviewSelected = false
+
+                val imagePagerFragment = PhotoPreviewFragment.newInstance( position)
                 (activity as PhotoPickerActivity?)?.addImagePagerFragment(imagePagerFragment)
             }
         })

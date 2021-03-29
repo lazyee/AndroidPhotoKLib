@@ -5,16 +5,16 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.gyf.immersionbar.ImmersionBar
-import com.lazyee.klib.photo.PhotoHelper
-import com.lazyee.klib.photo.R
 import com.lazyee.klib.photo.Photo
 import com.lazyee.klib.photo.PhotoDirectory
+import com.lazyee.klib.photo.PhotoHelper
+import com.lazyee.klib.photo.R
 import com.lazyee.klib.photo.databinding.ActivityPhotoPickerBinding
 import com.lazyee.klib.photo.picker.adapter.listener.OnPhotoSelectListener
 import com.lazyee.klib.photo.picker.common.MediaStoreHelper
 import com.lazyee.klib.photo.picker.common.PhotoResultCallback
-import com.lazyee.klib.photo.picker.fragment.PhotoPreviewFragment
 import com.lazyee.klib.photo.picker.fragment.PhotoPickerFragment
+import com.lazyee.klib.photo.picker.fragment.PhotoPreviewFragment
 import com.lazyee.klib.photo.picker.popup.DirectoryPopupWindow
 import java.util.*
 
@@ -43,7 +43,7 @@ internal class PhotoPickerActivity : AppCompatActivity(),OnPhotoSelectListener {
         maxCount = if (maxCount < MIN_COUNT) MIN_COUNT else maxCount
 
 
-        setPreviewText(0)//默认一进来的时候是0个
+        setSelectedCountText(0)//默认一进来的时候是0个
         binding.tvDone.setOnClickListener { clickDone() }
         binding.tvPreview.setOnClickListener { clickPreview() }
         binding.pickerHeader.ivClose.setOnClickListener { finish() }
@@ -92,11 +92,13 @@ internal class PhotoPickerActivity : AppCompatActivity(),OnPhotoSelectListener {
         }
     }
 
-    private fun setPreviewText(total:Int){
-        binding.tvPreview.text = getString(R.string.Preview,
-            total.toString(),
-            maxCount.toString())
+    private fun setSelectedCountText(total:Int){
+        binding.tvDone.isEnabled = total > 0
+        binding.tvPreview.isEnabled = total > 0
 
+        binding.tvPreview.text = getString(R.string.Preview,
+            total.toString())
+        binding.tvDone.text = getString(R.string.done,total.toString(),maxCount.toString())
     }
 
     /**
@@ -105,12 +107,11 @@ internal class PhotoPickerActivity : AppCompatActivity(),OnPhotoSelectListener {
      */
     override fun onBackPressed() {
         if (imagePagerFragment != null && imagePagerFragment!!.isVisible) {
-            imagePagerFragment!!.runExitAnimation {
-                if (supportFragmentManager.backStackEntryCount > 0) {
-                    ImmersionBar.with(this).barColor(R.color.header_background).init()
-                    supportFragmentManager.popBackStack()
-                }
-            }
+//            supportFragmentManager.popBackStack()
+            supportFragmentManager.beginTransaction()
+                .setCustomAnimations(R.anim.anim_preview_fragment_in,R.anim.anim_preview_fragment_out)
+                .remove(imagePagerFragment!!)
+                .commit()
         } else {
             super.onBackPressed()
         }
@@ -120,15 +121,22 @@ internal class PhotoPickerActivity : AppCompatActivity(),OnPhotoSelectListener {
         this.imagePagerFragment = imagePagerFragment
         supportFragmentManager
             .beginTransaction()
+            .setCustomAnimations(R.anim.anim_preview_fragment_in,R.anim.anim_preview_fragment_out)
             .replace(R.id.container, this.imagePagerFragment!!)
             .addToBackStack(null)
             .commit()
+    }
+
+    fun notifyDataSetChanged(){
+        pickerFragment?.notifyDataSetChanged()
+        setSelectedCountText(selectedPhotoList.size)
     }
 
     override fun onDestroy() {
         super.onDestroy()
         photoHelper = null
         selectedPhotoList.clear()
+        PhotoPreviewFragment.photoList = null
     }
 
     /**
@@ -155,14 +163,11 @@ internal class PhotoPickerActivity : AppCompatActivity(),OnPhotoSelectListener {
 
     //点击预览
     private fun clickPreview(){
-        val imagePagerFragment =
-            PhotoPreviewFragment.newInstance(
-                0,
-                intArrayOf(0,0),
-                0,
-                0,
-                true)
+        PhotoPreviewFragment.maxCount = maxCount
+        PhotoPreviewFragment.isPreviewSelected = true
+        PhotoPreviewFragment.photoList = selectedPhotoList
 
+        val imagePagerFragment = PhotoPreviewFragment.newInstance(0)
         addImagePagerFragment(imagePagerFragment)
     }
 
@@ -180,8 +185,7 @@ internal class PhotoPickerActivity : AppCompatActivity(),OnPhotoSelectListener {
         selectedItemCount: Int
     ): Boolean {
         val total = selectedItemCount + if (isSelect) -1 else 1
-        binding.tvDone.isEnabled = total > 0
-        binding.tvPreview.isEnabled = total > 0
+
 
         if (total > maxCount) {
             Toast.makeText(this@PhotoPickerActivity,
@@ -189,7 +193,7 @@ internal class PhotoPickerActivity : AppCompatActivity(),OnPhotoSelectListener {
                 Toast.LENGTH_LONG).show()
             return false
         }
-        setPreviewText(total)
+        setSelectedCountText(total)
         return true
     }
 

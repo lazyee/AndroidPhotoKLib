@@ -23,7 +23,6 @@ import com.lazyee.klib.photo.util.BitmapUtils.isPictureRotate
 import com.lazyee.klib.photo.util.LogUtils
 import java.io.File
 import java.io.IOException
-import java.lang.Exception
 
 /**
  * 照片帮助类

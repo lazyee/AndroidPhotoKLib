@@ -2,23 +2,19 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="48dp"
-    android:id="@+id/llTitle"
     android:background="@color/header_background"
     android:gravity="center">
 
     <ImageView
-        android:id="@+id/ivClose"
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:padding="15dp"
         android:src="@drawable/ic_picker_close" />
 
     <TextView
-        android:id="@+id/tvTitle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:text="@string/images"
         android:textColor="@android:color/white"
         android:textSize="16sp" />
 </LinearLayout>

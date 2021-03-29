@@ -1,12 +1,10 @@
 package com.lazyee.klib.photo.corp
 
-import android.annotation.TargetApi
 import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.provider.MediaStore
 import android.widget.Toast
 import androidx.fragment.app.Fragment

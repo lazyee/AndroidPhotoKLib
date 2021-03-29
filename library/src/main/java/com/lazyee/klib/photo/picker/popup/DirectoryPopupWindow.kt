@@ -11,8 +11,8 @@ import android.view.animation.AnimationUtils
 import android.widget.LinearLayout
 import android.widget.PopupWindow
 import androidx.recyclerview.widget.RecyclerView
-import com.lazyee.klib.photo.R
 import com.lazyee.klib.photo.PhotoDirectory
+import com.lazyee.klib.photo.R
 import com.lazyee.klib.photo.databinding.PopupDirectoryBinding
 import com.lazyee.klib.photo.databinding.TemplatePhotoPickerDirectoryBinding
 import com.lazyee.klib.photo.extension.loadThumbnail

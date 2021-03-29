@@ -6,17 +6,15 @@
     android:orientation="vertical">
 
     <RelativeLayout
-        android:id="@+id/rlHeader"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="48dp">
-        <include layout="@layout/include_picker_header" android:id="@+id/pickerHeader"/>
+        <include layout="@layout/include_picker_header" />
         <TextView
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
-            android:id="@+id/tvDone"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginRight="5dp"
@@ -27,14 +25,13 @@
             android:paddingTop="5dp"
             android:paddingRight="15dp"
             android:paddingBottom="5dp"
-            android:text="@string/done"
+            android:text="@string/done2"
             android:textColor="@color/selector_done_text_color" />
         </RelativeLayout>
     </RelativeLayout>
 
 
     <com.lazyee.klib.photo.corp.CropImageView
-        android:id="@+id/cropImageView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"

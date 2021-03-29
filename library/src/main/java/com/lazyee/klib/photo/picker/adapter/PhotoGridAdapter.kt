@@ -5,8 +5,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.lazyee.klib.photo.R
 import com.lazyee.klib.photo.Photo
+import com.lazyee.klib.photo.R
 import com.lazyee.klib.photo.databinding.TemplatePhotoPickerPhotoBinding
 import com.lazyee.klib.photo.extension.loadThumbnail
 import com.lazyee.klib.photo.picker.activity.PhotoPickerActivity

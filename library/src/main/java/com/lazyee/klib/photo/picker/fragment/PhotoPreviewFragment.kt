@@ -1,20 +1,16 @@
 package com.lazyee.klib.photo.picker.fragment
 
-import android.animation.Animator
-import android.animation.ObjectAnimator
 import android.content.Context
-import android.graphics.ColorMatrix
-import android.graphics.ColorMatrixColorFilter
 import android.os.Bundle
+import android.util.DisplayMetrics
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewTreeObserver
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
-import android.view.animation.DecelerateInterpolator
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager.widget.ViewPager.OnPageChangeListener
 import com.gyf.immersionbar.ImmersionBar
@@ -26,37 +22,19 @@ import com.lazyee.klib.photo.extension.loadThumbnail
 import com.lazyee.klib.photo.picker.activity.PhotoPickerActivity
 import com.lazyee.klib.photo.picker.adapter.OnBigImageClickListener
 import com.lazyee.klib.photo.picker.adapter.PhotoPagerAdapter
-import java.util.*
 
 internal class PhotoPreviewFragment : Fragment(),OnBigImageClickListener {
-//    var paths = mutableListOf<String>()
+    private val removePhotoList = mutableListOf<Photo>()
     private var mPagerAdapter: PhotoPagerAdapter? = null
-    private var thumbnailTop = 0
-    private var thumbnailLeft = 0
-    private var thumbnailWidth = 0
-    private var thumbnailHeight = 0
-    private var hasAnim = false
-    private val colorizerMatrix = ColorMatrix()
-    private var currentIndex = 0
-    private var isPreviewSelected = false
+    private var maxCount :Int = PhotoPickerActivity.DEFAULT_MAX_COUNT
     private lateinit var binding:FragmentPhotoPreviewBinding
-    private val selectedPhotoAdapter:SelectedPhotoAdapter by lazy { SelectedPhotoAdapter(PhotoPickerActivity.selectedPhotoList) }
-
+    private val selectedPhotoAdapter:SelectedPhotoAdapter by lazy { SelectedPhotoAdapter(photoList!!) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        ImmersionBar.with(this).barColor(R.color.pager_bg).init();
-        val bundle = arguments
-        if (bundle != null) {
-            hasAnim = bundle.getBoolean(ARG_HAS_ANIM)
-            currentIndex = bundle.getInt(ARG_CURRENT_ITEM)
-            thumbnailTop = bundle.getInt(ARG_THUMBNAIL_TOP)
-            thumbnailLeft = bundle.getInt(ARG_THUMBNAIL_LEFT)
-            thumbnailWidth = bundle.getInt(ARG_THUMBNAIL_WIDTH)
-            thumbnailHeight = bundle.getInt(ARG_THUMBNAIL_HEIGHT)
-            isPreviewSelected = bundle.getBoolean(ARG_IS_PREVIEW_SELECTED)
-        }
-        mPagerAdapter = PhotoPagerAdapter(activity!!, PhotoPickerActivity.selectedPhotoList)
+        ImmersionBar.with(this).barColor(R.color.pager_bg).init()
+
+        mPagerAdapter = PhotoPagerAdapter(activity!!, photoList!!)
         mPagerAdapter?.onBigImageClickListener = this
     }
 
@@ -70,30 +48,13 @@ internal class PhotoPreviewFragment : Fragment(),OnBigImageClickListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.vpPhotos.adapter = mPagerAdapter
-        binding.vpPhotos.currentItem = currentIndex
+        binding.vpPhotos.currentItem = arguments?.getInt(ARG_CURRENT_ITEM) ?: 0
         binding.vpPhotos.offscreenPageLimit = 5
 
         binding.rlBottom.visibility = if(isPreviewSelected)View.VISIBLE else View.GONE
+        updateDoneTextView()
 
-        // Only run the animation if we're coming from the parent activity, not if
-        // we're recreated automatically by the window manager (e.g., device rotation)
-        if (savedInstanceState == null && hasAnim) {
-            val observer = binding.vpPhotos.viewTreeObserver
-            observer.addOnPreDrawListener(object : ViewTreeObserver.OnPreDrawListener {
-                override fun onPreDraw(): Boolean {
-                    binding.vpPhotos.viewTreeObserver.removeOnPreDrawListener(this)
-
-                    // Figure out where the thumbnail and full size versions are, relative
-                    // to the screen and each other
-                    val screenLocation = IntArray(2)
-                    binding.vpPhotos.getLocationOnScreen(screenLocation)
-                    thumbnailLeft -= screenLocation[0]
-                    thumbnailTop -= screenLocation[1]
-                    runEnterAnimation()
-                    return true
-                }
-            })
-        }
+        binding.tvPhotoNumber.text = "1"
         binding.vpPhotos.addOnPageChangeListener(object : OnPageChangeListener {
             override fun onPageScrolled(
                 position: Int,
@@ -102,9 +63,19 @@ internal class PhotoPreviewFragment : Fragment(),OnBigImageClickListener {
             ){}
 
             override fun onPageSelected(position: Int) {
-                hasAnim = currentIndex == position
-                currentIndex = position
                 binding.rvPhotos.adapter?.notifyDataSetChanged()
+                if(isPreviewSelected){
+                    if(isRemoved(photoList!![position])){
+                        binding.llPhotoNumber.visibility = View.GONE
+                        binding.ivCheck.visibility = View.VISIBLE
+                    }else{
+                        binding.llPhotoNumber.visibility = View.VISIBLE
+                        binding.ivCheck.visibility = View.GONE
+                    }
+                    binding.tvPhotoNumber.text = (position + 1).toString()
+                }
+
+                smoothToCenter(binding.rvPhotos,position,200)
             }
 
             override fun onPageScrollStateChanged(state: Int) {}
@@ -122,150 +93,93 @@ internal class PhotoPreviewFragment : Fragment(),OnBigImageClickListener {
             }
             binding.rvPhotos.adapter = selectedPhotoAdapter
 
-            binding.tvDone.isEnabled = PhotoPickerActivity.selectedPhotoList.isNotEmpty()
-            binding.tvDone.setOnClickListener { (activity as PhotoPickerActivity).clickDone() }
+            binding.tvDone.isEnabled = photoList!!.isNotEmpty()
+            binding.tvDone.setOnClickListener {
+                PhotoPickerActivity.selectedPhotoList.removeAll(removePhotoList)
+                (activity as PhotoPickerActivity).clickDone()
+            }
+            binding.rlCheck.visibility = View.VISIBLE
+        }else{
+            binding.rlCheck.visibility = View.GONE
+        }
+
+        binding.llPhotoNumber.setOnClickListener {
+            val currentIndex = binding.vpPhotos.currentItem
+            val photo = photoList!![currentIndex]
+            if(currentIndex + 1 < photoList!!.size && removePhotoList.firstOrNull() == photoList!![currentIndex + 1]){
+                removePhotoList.add(0,photo)
+            }else{
+                removePhotoList.add(photo)
+
+                photoList!!.remove(photo)
+                photoList!!.add(photo)
+
+                binding.vpPhotos.setCurrentItem(photoList!!.size - 1,false)
+            }
+
+            mPagerAdapter?.notifyDataSetChanged()
+            selectedPhotoAdapter.notifyDataSetChanged()
+
+            binding.llPhotoNumber.visibility = View.GONE
+            binding.ivCheck.visibility = View.VISIBLE
+            updateDoneTextView()
+        }
+
+        binding.ivCheck.setOnClickListener {
+            val photo = photoList!![binding.vpPhotos.currentItem]
+            if(removePhotoList.isNotEmpty()){
+                val firstRemovePhoto = removePhotoList[0]
+                val insertIndex = photoList!!.indexOf(firstRemovePhoto)
+
+                removePhotoList.remove(photo)
+                photoList!!.remove(photo)
+                photoList!!.add(insertIndex,photo)
+            }
+
+            binding.vpPhotos.setCurrentItem(photoList!!.indexOf(photo),false)
+            mPagerAdapter?.notifyDataSetChanged()
+            selectedPhotoAdapter.notifyDataSetChanged()
+            binding.llPhotoNumber.visibility = View.VISIBLE
+            binding.ivCheck.visibility = View.GONE
+            updateDoneTextView()
         }
     }
 
-    /**
-     * The enter animation scales the picture in from its previous thumbnail
-     * size/location, colorizing it in parallel. In parallel, the background of the
-     * activity is fading in. When the pictue is in place, the text description
-     * drops down.
-     */
-    private fun runEnterAnimation() {
-        val duration = ANIM_DURATION
+    private fun updateDoneTextView(){
+        binding.tvDone.text = getString(R.string.done,
+            (photoList!!.size - removePhotoList.size).toString(),
+            maxCount.toString())
 
-        // Set starting values for properties we're going to animate. These
-        // values scale and position the full size version down to the thumbnail
-        // size/location, from which we'll animate it back up
-
-
-//    ViewHelper.setPivotX(mViewPager, 0);
-//    ViewHelper.setPivotY(mViewPager, 0);
-//    ViewHelper.setScaleX(mViewPager, (float) thumbnailWidth / mViewPager.getWidth());
-//    ViewHelper.setScaleY(mViewPager, (float) thumbnailHeight / mViewPager.getHeight());
-//    ViewHelper.setTranslationX(mViewPager, thumbnailLeft);
-//    ViewHelper.setTranslationY(mViewPager, thumbnailTop);
-
-        // Animate scale and translation to go from thumbnail to full size
-        binding.vpPhotos.animate()
-            .setDuration(3000).interpolator = DecelerateInterpolator()
-
-        // Fade in the black background
-        val bgAnim = ObjectAnimator.ofInt(
-            binding.vpPhotos.background, "alpha", 0, 255)
-        bgAnim.duration = duration
-        bgAnim.start()
-
-        // Animate a color filter to take the image from grayscale to full color.
-        // This happens in parallel with the image scaling and moving into place.
-        val colorizer = ObjectAnimator.ofFloat(this@PhotoPreviewFragment,
-            "saturation", 0f, 1f)
-        colorizer.duration = duration
-        colorizer.start()
+        binding.tvDone.isEnabled = photoList!!.size != removePhotoList.size
     }
 
     /**
-     * The exit animation is basically a reverse of the enter animation, except that if
-     * the orientation has changed we simply scale the picture back into the center of
-     * the screen.
-     *
-     * @param endAction This action gets run after the animation completes (this is
-     * when we actually switch activities)
+     * 是否被移除
+     * @param photo Photo
+     * @return Boolean
      */
-    fun runExitAnimation(endAction: Runnable) {
-        if (!arguments!!.getBoolean(ARG_HAS_ANIM, false) || !hasAnim) {
-            endAction.run()
-            return
-        }
-        val duration = ANIM_DURATION
-
-        // Animate image back to thumbnail size/location
-//    ViewPropertyAnimator.animate(mViewPager)
-        binding.vpPhotos.animate()
-            .setDuration(duration) //            .setDuration(5000)
-            .alpha(0f) //            .setInterpolator(new AccelerateInterpolator())
-            //            .rotationX(0)
-            //            .rotationY(0)
-            //            .scaleX((float) thumbnailWidth / mViewPager.getWidth())
-            //            .scaleY((float) thumbnailHeight / mViewPager.getHeight())
-            //            .translationX(thumbnailLeft)
-            //            .translationY(thumbnailTop)
-            .setListener(object : Animator.AnimatorListener {
-                override fun onAnimationStart(animation: Animator) {}
-                override fun onAnimationEnd(animation: Animator) {
-                    endAction.run()
-                }
-
-                override fun onAnimationCancel(animation: Animator) {}
-                override fun onAnimationRepeat(animation: Animator) {}
-            })
-
-        // Fade out background
-        val bgAnim = ObjectAnimator.ofInt(
-            binding.vpPhotos.background, "alpha", 0)
-        bgAnim.duration = duration
-        bgAnim.start()
-
-        // Animate a color filter to take the image back to grayscale,
-        // in parallel with the image scaling and moving into place.
-        val colorizer = ObjectAnimator.ofFloat(this@PhotoPreviewFragment, "saturation", 1f, 0f)
-        colorizer.duration = duration
-        colorizer.start()
+    private fun isRemoved(photo: Photo): Boolean {
+        return removePhotoList.contains(photo)
     }
 
-    /**
-     * This is called by the colorizing animator. It sets a saturation factor that is then
-     * passed onto a filter on the picture's drawable.
-     * @param value saturation
-     */
-    fun setSaturation(value: Float) {
-        colorizerMatrix.setSaturation(value)
-        val colorizerFilter = ColorMatrixColorFilter(colorizerMatrix)
-        binding.vpPhotos.background.colorFilter = colorizerFilter
-    }
+    override fun onDetach() {
+        super.onDetach()
 
-    fun getCurrentItem(): Int {
-        return binding.vpPhotos.currentItem
+        PhotoPickerActivity.selectedPhotoList.removeAll(removePhotoList)
+        (activity as PhotoPickerActivity).notifyDataSetChanged()
     }
 
     companion object {
         const val ARG_CURRENT_ITEM = "ARG_CURRENT_ITEM"
-        const val ANIM_DURATION = 0L
-        const val ARG_THUMBNAIL_TOP = "THUMBNAIL_TOP"
-        const val ARG_THUMBNAIL_LEFT = "THUMBNAIL_LEFT"
-        const val ARG_THUMBNAIL_WIDTH = "THUMBNAIL_WIDTH"
-        const val ARG_THUMBNAIL_HEIGHT = "THUMBNAIL_HEIGHT"
-        const val ARG_HAS_ANIM = "HAS_ANIM"
-        const val ARG_IS_PREVIEW_SELECTED = "IS_PREVIEW_SELECTED"
-        fun newInstance(currentItem: Int,isPreviewSelected:Boolean = false): PhotoPreviewFragment {
+        var isPreviewSelected = false
+        var maxCount = PhotoPickerActivity.DEFAULT_MAX_COUNT
+        var photoList :MutableList<Photo>? = null
+
+        fun newInstance(currentItem: Int): PhotoPreviewFragment {
             val f = PhotoPreviewFragment()
             val args = Bundle()
             args.putInt(ARG_CURRENT_ITEM, currentItem)
-            args.putBoolean(ARG_HAS_ANIM, false)
-            args.putBoolean(ARG_IS_PREVIEW_SELECTED,isPreviewSelected)
             f.arguments = args
-            return f
-        }
-
-        fun newInstance(
-            currentItem: Int,
-            screenLocation: IntArray,
-            thumbnailWidth: Int,
-            thumbnailHeight: Int,
-            isPreviewSelected:Boolean = false
-        ): PhotoPreviewFragment {
-            val f = newInstance(currentItem)
-            f.arguments!!
-                .putInt(ARG_THUMBNAIL_LEFT, screenLocation[0])
-            f.arguments!!.putInt(ARG_THUMBNAIL_TOP, screenLocation[1])
-            f.arguments!!
-                .putInt(ARG_THUMBNAIL_WIDTH, thumbnailWidth)
-            f.arguments!!
-                .putInt(ARG_THUMBNAIL_HEIGHT, thumbnailHeight)
-            f.arguments!!.putBoolean(ARG_HAS_ANIM, true)
-            f.arguments!!.putBoolean(ARG_IS_PREVIEW_SELECTED,isPreviewSelected)
             return f
         }
     }
@@ -312,6 +226,27 @@ internal class PhotoPreviewFragment : Fragment(),OnBigImageClickListener {
         })
     } }
 
+    /**
+     * 滚动到中间位置
+     */
+    fun smoothToCenter(recyclerView: RecyclerView, position: Int?,time: Int){
+        try {
+            val layoutManager = recyclerView.layoutManager as LinearLayoutManager
+            val scroller =  CenterSmoothScroller(activity!!,time)
+            var finalPosition = 0
+            if(position != null){
+                finalPosition = if(position < 0) 0 else position
+            }
+
+            scroller.targetPosition = finalPosition
+            if(scroller.isRunning)return
+            layoutManager.startSmoothScroll(scroller)
+        }catch (e:Exception){
+            e.printStackTrace()
+            recyclerView.scrollToPosition(position?:0)
+        }
+    }
+
     private val bottomAnimIn by lazy { AnimationUtils.loadAnimation(activity,R.anim.anim_preview_bottom_in) }
     private val bottomAnimOut by lazy { AnimationUtils.loadAnimation(activity,R.anim.anim_preview_bottom_out) }
 
@@ -331,6 +266,12 @@ internal class PhotoPreviewFragment : Fragment(),OnBigImageClickListener {
         }
     }
 
+
+    private fun dip2px(dpValue:Float): Int {
+        val scale = resources.displayMetrics.density
+        return (dpValue * scale + 0.5f).toInt()
+    }
+
     //选中的图片的适配器
     inner class SelectedPhotoAdapter(private val photos:List<Photo>) :RecyclerView.Adapter<SelectedPhotoViewHolder>(){
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SelectedPhotoViewHolder {
@@ -338,11 +279,13 @@ internal class PhotoPreviewFragment : Fragment(),OnBigImageClickListener {
         }
 
         override fun onBindViewHolder(holder: SelectedPhotoViewHolder, position: Int) {
-            holder.binding.ivImage.loadThumbnail(photos[position].path!!)
+            val photo = photos[position]
+            holder.binding.ivImage.loadThumbnail(photo.path!!)
             holder.binding.ivImage.setOnClickListener {
                 binding.vpPhotos.setCurrentItem(position,false)
             }
-            holder.binding.llCurrent.visibility = if(position == currentIndex)View.VISIBLE else View.GONE
+            holder.binding.maskView.visibility = if(isRemoved(photo))View.VISIBLE else View.GONE
+            holder.binding.llCurrent.visibility = if(position == binding.vpPhotos.currentItem)View.VISIBLE else View.GONE
         }
 
         override fun getItemCount(): Int {
@@ -351,5 +294,20 @@ internal class PhotoPreviewFragment : Fragment(),OnBigImageClickListener {
     }
 
     inner class SelectedPhotoViewHolder(val binding: TemplatePreviewSelectedPhotoBinding):RecyclerView.ViewHolder(binding.root)
+
+    internal class CenterSmoothScroller(context: Context,private val time:Int) : LinearSmoothScroller(context) {
+
+        override fun calculateTimeForDeceleration(dx: Int): Int {
+            return time
+        }
+
+        override fun calculateDtToFit(viewStart: Int, viewEnd: Int, boxStart: Int, boxEnd: Int, snapPreference: Int): Int {
+            return (boxStart + (boxEnd - boxStart) / 2) - (viewStart + (viewEnd - viewStart) / 2)
+        }
+
+        override fun calculateSpeedPerPixel(displayMetrics: DisplayMetrics): Float {
+            return 50f / displayMetrics.densityDpi
+        }
+    }
 }
 
