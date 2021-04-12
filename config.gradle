@@ -2,7 +2,7 @@ ext {
 
     versions = [
             compile_sdk               : 29,
-            min_sdk                   : 16,
+            min_sdk                   : 19,
             target_sdk                : 29,
 
             build_tools               : "30.0.2",
